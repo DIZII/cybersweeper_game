@@ -1,0 +1,22 @@
+{
+  "name": "cipher-sweeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A cyberpunk netrunner Minesweeper game built for the AI-Native Engineering Challenge.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.js",
+    "smoke": "node scripts/smoke-check.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "npm test && npm run smoke && npm run build"
+  },
+  "keywords": [
+    "minesweeper",
+    "browser-game",
+    "ai-native-challenge"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

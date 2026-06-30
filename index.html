@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Cipher Sweeper, a cyberpunk netrunner Minesweeper game."
+    />
+    <title>Cipher Sweeper</title>
+    <link rel="icon" href="assets/app-icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/app-icon.png" />
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body data-theme="cyber">
+    <main class="app-shell">
+      <section class="game-layout" aria-label="Cipher Sweeper game">
+        <section class="play-surface">
+          <header class="topbar">
+            <div class="brand">
+              <img
+                class="brand-mark"
+                src="assets/app-icon.png"
+                alt=""
+                aria-hidden="true"
+              />
+              <div>
+                <p class="eyebrow">Netrunner Protocol</p>
+                <h1>Hack the Cipher</h1>
+              </div>
+            </div>
+            <p class="status-pill" id="statusText" aria-live="polite">
+              Cipher awaiting breach
+            </p>
+          </header>
+
+          <div class="metrics" aria-label="Game metrics">
+            <div class="metric">
+              <span class="metric-label">Errors</span>
+              <strong id="mineCounter">000</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Time</span>
+              <strong id="timeCounter">000</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Safe</span>
+              <strong id="safeCounter">000</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Ping</span>
+              <strong id="scanCounter">000</strong>
+            </div>
+          </div>
+
+          <div class="board-frame">
+            <div
+              class="board"
+              id="board"
+              role="grid"
+              aria-label="Cipher board"
+            ></div>
+          </div>
+        </section>
+
+        <aside class="control-deck" aria-label="Game controls">
+          <section class="control-group">
+            <h2>Runner</h2>
+            <label class="field-input runner-input" for="runnerName">
+              <span>Alias</span>
+              <input
+                id="runnerName"
+                type="text"
+                maxlength="18"
+                autocomplete="off"
+                placeholder="Enter alias"
+                aria-describedby="runnerNameHint"
+              />
+            </label>
+            <p class="custom-hint" id="runnerNameHint">
+              Required before each cipher run.
+            </p>
+          </section>
+
+          <section class="control-group">
+            <h2>Field</h2>
+            <div class="segmented" id="presetControls"></div>
+          </section>
+
+          <section class="control-group">
+            <h2>Custom field</h2>
+            <form class="custom-field-form" id="customFieldForm">
+              <div class="custom-input-grid">
+                <label class="field-input" for="customRows">
+                  <span>Rows</span>
+                  <input
+                    id="customRows"
+                    type="number"
+                    min="6"
+                    max="40"
+                    step="1"
+                    inputmode="numeric"
+                    value="16"
+                  />
+                </label>
+                <label class="field-input" for="customCols">
+                  <span>Columns</span>
+                  <input
+                    id="customCols"
+                    type="number"
+                    min="6"
+                    max="60"
+                    step="1"
+                    inputmode="numeric"
+                    value="24"
+                  />
+                </label>
+                <label class="field-input field-input-wide" for="customMines">
+                  <span>Errors</span>
+                  <input
+                    id="customMines"
+                    type="number"
+                    min="1"
+                    max="268"
+                    step="1"
+                    inputmode="numeric"
+                    value="76"
+                  />
+                </label>
+              </div>
+              <p class="custom-hint" id="customMineLimit">Max errors: 268</p>
+              <button
+                class="command primary"
+                id="customFieldButton"
+                type="submit"
+                data-icon="C"
+                title="Build a custom cipher with errors capped at 70 percent of the field."
+                aria-label="Build custom board"
+              >
+                Build field
+              </button>
+            </form>
+          </section>
+
+          <section class="control-group">
+            <h2>Protocols</h2>
+            <div class="action-grid">
+              <button
+                class="command primary"
+                id="newGameButton"
+                type="button"
+                data-icon="N"
+                title="Start a fresh randomized cipher with the selected difficulty."
+                aria-label="Start a fresh randomized cipher"
+              >
+                New cipher
+              </button>
+              <button
+                class="command"
+                id="dailyButton"
+                type="button"
+                data-icon="D"
+                title="Start today's deterministic cipher for the selected difficulty."
+                aria-label="Start today's deterministic cipher"
+              >
+                Daily cipher
+              </button>
+              <button
+                class="command"
+                id="scanButton"
+                type="button"
+                data-icon="S"
+                title="Use one ping charge to highlight a safe hidden node."
+                aria-label="Use a safe ping"
+              >
+                Safe ping
+              </button>
+              <button
+                class="command"
+                id="markModeButton"
+                type="button"
+                data-icon="M"
+                aria-pressed="false"
+                title="Toggle tap-to-mark mode for flagging and question-marking cells."
+                aria-label="Toggle mark mode"
+              >
+                Mark mode
+              </button>
+            </div>
+          </section>
+
+          <section class="control-group">
+            <h2>Scale</h2>
+            <div class="segmented scale-segmented" id="scaleControls">
+              <button class="segment" data-scale="compact" type="button">
+                Compact
+              </button>
+              <button class="segment" data-scale="standard" type="button">
+                Standard
+              </button>
+              <button class="segment" data-scale="large" type="button">
+                Large
+              </button>
+            </div>
+          </section>
+
+        </aside>
+
+        <aside class="leaderboard-deck" aria-label="Leaderboard and music">
+          <section class="leaderboard-group">
+            <h2>Leaderboard</h2>
+            <p class="leaderboard-mode" id="leaderboardMode">Junior</p>
+            <ol class="leaderboard-list" id="leaderboardList"></ol>
+          </section>
+
+          <section class="music-group" aria-label="Music controls">
+            <h2>Music</h2>
+            <div class="music-panel">
+              <button
+                class="command"
+                id="musicToggleButton"
+                type="button"
+                data-icon="P"
+                aria-pressed="false"
+                title="Start or pause the cyberpunk soundtrack."
+                aria-label="Start cyberpunk soundtrack"
+              >
+                Play music
+              </button>
+              <label class="field-input" for="musicTrackSelect">
+                <span>Track</span>
+                <select id="musicTrackSelect" aria-label="Music track"></select>
+              </label>
+              <label class="field-input" for="musicVolume">
+                <span class="volume-label">
+                  Volume
+                  <output id="musicVolumeValue" for="musicVolume">20%</output>
+                </span>
+                <input
+                  id="musicVolume"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="20"
+                  aria-label="Music volume"
+                />
+              </label>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <audio id="musicPlayer" preload="metadata"></audio>
+
+    <button
+      class="help-button"
+      id="helpButton"
+      type="button"
+      aria-haspopup="dialog"
+      aria-controls="helpModal"
+      title="Show help"
+    >
+      ?
+    </button>
+
+    <div class="modal-backdrop" id="resultModal" hidden>
+      <section
+        class="result-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="resultTitle"
+      >
+        <p class="eyebrow" id="resultKicker">Cipher run</p>
+        <h2 id="resultTitle">Cipher cracked</h2>
+        <p id="resultText">The route is clean.</p>
+        <button class="command primary" id="modalNewGameButton" type="button">
+          New cipher
+        </button>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="helpModal" hidden>
+      <section
+        class="result-dialog help-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="helpTitle"
+      >
+        <p class="eyebrow">Quick help</p>
+        <h2 id="helpTitle">Protocols</h2>
+        <dl class="help-list">
+          <div>
+            <dt>Runner alias</dt>
+            <dd>Enter a name before starting a cipher run so clean runs can be ranked.</dd>
+          </div>
+          <div>
+            <dt>New cipher</dt>
+            <dd>Starts a fresh randomized cipher for the selected difficulty.</dd>
+          </div>
+          <div>
+            <dt>Daily cipher</dt>
+            <dd>Starts today's deterministic cipher for the selected difficulty.</dd>
+          </div>
+          <div>
+            <dt>Safe ping</dt>
+            <dd>Uses one ping charge to highlight a safe hidden node.</dd>
+          </div>
+          <div>
+            <dt>Mark mode</dt>
+            <dd>Turns normal clicks into mark clicks: flag, question mark, clear.</dd>
+          </div>
+          <div>
+            <dt>Custom field</dt>
+            <dd>Builds a cipher from your rows, columns, and errors. Errors are capped at 70% of the field.</dd>
+          </div>
+          <div>
+            <dt>Scale</dt>
+            <dd>Changes cell size for larger visibility or denser oversized boards.</dd>
+          </div>
+          <div>
+            <dt>Leaderboard</dt>
+            <dd>Stores the fastest clean runs locally for the current mode.</dd>
+          </div>
+          <div>
+            <dt>Music</dt>
+            <dd>Starts or pauses the soundtrack, switches tracks, and keeps volume gentle by default.</dd>
+          </div>
+        </dl>
+        <button class="command primary" id="helpCloseButton" type="button">
+          Got it
+        </button>
+      </section>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
